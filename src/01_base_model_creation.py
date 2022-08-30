@@ -6,6 +6,7 @@ from utils.common import read_yaml, create_directories
 import random
 import tensorflow as tf
 import numpy as np
+import io
 
 STAGE = "Creating Base Model" ## <<< change stage name 
 
@@ -54,7 +55,16 @@ def main(config_path):
     METRICS = ["accuracy"]
     model.compile(loss = LOSS_FUNCTION, optimizer = OPTIMIZER, metrics = METRICS)
 
-    model.summary()
+    def _log_model_summary(model):
+        with io.StringIO() as stream:
+            model.summary(print_fn = lambda x: stream.write(f"{x}\n"))
+            summary_str = stream.getvalue()
+        return summary_str
+    
+    logging.info(f"{STAGE} model summary: \n{_log_model_summary(model)}")
+
+
+    # model.summary()
 
     ## Train the model 
 
@@ -74,7 +84,7 @@ def main(config_path):
     logging.info(f"Base model is saved at {model_file_path}") 
     logging.info(f"Evaluation metrics {model.evaluate(X_test, y_test)}")
 
-    
+
 if __name__ == '__main__':
     args = argparse.ArgumentParser()
     args.add_argument("--config", "-c", default="configs/config.yaml")
